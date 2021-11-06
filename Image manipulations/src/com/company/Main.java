@@ -1,7 +1,5 @@
 package com.company;
 
-import com.sun.jdi.Mirror;
-
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
@@ -14,41 +12,34 @@ public class Main {
     private static File f;
 
     private static void upsidedown(int width, int height) {
-        int gx1;
-        int gx2;
-        int gy1;
-        int gy2;
-        int red;
-        int green;
-        int blue;
+        int gx1;int gx2;int gy1;int gy2;
+        int red;int green;int blue;
+        int[][] output= new int[width][height];
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                int output=0;
-                int redx=0;
-                int greenx=0;
-                int bluex=0;
-                int redy=0;
-                int greeny=0;
-                int bluey=0;
+                int redx=0;int greenx=0;int bluex=0;
+                int redy=0;int greeny=0;int bluey=0;
                 for (int k = -1; k <2; k++) {
                     try{gx1=image.getRGB(j-1,i+k);}catch(Exception e){gx1=0;}
                     try{gx2=image.getRGB(j+1,i+k);}catch(Exception e){gx2=0;}
                     try{gy1=image.getRGB(j+k,i-1);}catch(Exception e){gy1=0;}
                     try{gy2=image.getRGB(j+k,i+1);}catch(Exception e){gy2=0;}
                     if(k==0){
-                        redx=redx+2*((gx1>>16)&0xff)-2*((gx2>>16)&0xff);
-                        greenx=greenx+2*((gx1>>8)&0xff)-2*((gx2>>8)&0xff);
-                        bluex=bluex+2*(gx1&0xff)-2*(gx2&0xff);
-                        redy=redy+2*((gy1>>16)&0xff)-2*((gy1>>16)&0xff);
-                        greeny=greeny+2*((gy1>>8)&0xff)-2*((gy2>>8)&0xff);
-                        bluey=bluey+2*(gy1&0xff)-2*(gy2&0xff);
+                        redx+=2*((gx1>>16)&0xff)-2*((gx2>>16)&0xff);
+                        greenx+=+2*((gx1>>8)&0xff)-2*((gx2>>8)&0xff);
+                        bluex+=2*(gx1&0xff)-2*(gx2&0xff);
+                        redy+=2*((gy1>>16)&0xff)-2*((gy1>>16)&0xff);
+                        greeny+=2*((gy1>>8)&0xff)-2*((gy2>>8)&0xff);
+                        bluey+=2*(gy1&0xff)-2*(gy2&0xff);
                     }
-                    redx=redx+((gx1>>16)&0xff)-((gx2>>16)&0xff);
-                    greenx=greenx+((gx1>>8)&0xff)-((gx2>>8)&0xff);
-                    bluex=bluex+(gx1&0xff)-(gx2&0xff);
-                    redy=redy+((gy1>>16)&0xff)-((gy1>>16)&0xff);
-                    greeny=greeny+((gy1>>8)&0xff)-((gy2>>8)&0xff);
-                    bluey=bluey+(gy1&0xff)-(gy2&0xff);
+                    else {
+                        redx += ((gx1 >> 16) & 0xff) - ((gx2 >> 16) & 0xff);
+                        greenx += ((gx1 >> 8) & 255) - ((gx2 >> 8) & 0xff);
+                        bluex += (gx1 & 0xff) - (gx2 & 0xff);
+                        redy += ((gy1 >> 16) & 0xff) - ((gy1 >> 16) & 0xff);
+                        greeny += ((gy1 >> 8) & 0xff) - ((gy2 >> 8) & 0xff);
+                        bluey += (gy1 & 0xff) - (gy2 & 0xff);
+                    }
                 }
                 red=(int)Math.sqrt(redx*redx+redy*redy);
                 if(red>255){red=255;}
@@ -56,8 +47,12 @@ public class Main {
                 if(green>255){green=255;}
                 blue=(int)Math.sqrt(bluex*bluex+bluey*bluey);
                 if(blue>255){blue=255;}
-                output=(output | (image.getRGB(j,i)<<24))+(output | (red<<16))+(output | (green<<8))+(output | blue);
-                image.setRGB(j,i,output);
+                output[j][i]=(output[j][i] | (image.getRGB(j,i)<<24))+(output[j][i] | (red<<16))+(output[j][i] | (green<<8))+(output[j][i] | blue);
+            }
+        }
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                image.setRGB(j,i,output[j][i]);
             }
         }
     }
@@ -88,8 +83,9 @@ public class Main {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 int temp=image.getRGB(j,i);
-                int transparency=(temp>>24) & 0xff;
-                temp= temp | ((transparency<<24)/2);
+                int transparency=128;
+                temp= temp-((temp>>24)&0xff);
+                temp= temp | (transparency<<24);
                 image.setRGB(j,i,temp);
             }
         }
